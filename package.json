@@ -1,0 +1,32 @@
+{
+  "name": "use-connect-render",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib",
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "files": [
+    "/lib"
+  ],
+  "keywords": [
+    "react hook",
+    "hook state management",
+    "state management without redux",
+    "react render",
+    "connect render",
+    "react connect render"
+  ],
+  "repository": "https://github.com/phucsang0spt/use-connect-render",
+  "author": "Phuc Sang",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.0",
+    "typescript": "^4.1.3"
+  }
+}
