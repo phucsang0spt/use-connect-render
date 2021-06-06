@@ -1,6 +1,7 @@
 export { useGlobal } from "./global";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEvent } from "./event";
+import { Event, useEvent } from "./event";
+import { getGlobal } from "./global";
 
 type Watch = <T = any>(
   name: string,
@@ -9,6 +10,9 @@ type Watch = <T = any>(
 
 type Listen = <TS = any[]>(...names: string[]) => TS;
 type Pusher = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
+
+type KeyPair<T> = [string, T];
+type Hydrate<T = any> = (scope: string, ...keypairs: KeyPair<T>[]) => void;
 
 export function useConnectRender<T = any>(
   scope: string,
@@ -87,6 +91,57 @@ export function useConnectRender<T = any>(
     listen,
     watch,
     pusher,
+  };
+}
+
+const pushToHydrate: Hydrate = function (scope, ...keypairs) {
+  const global = getGlobal<{ events: Record<string, any> }>();
+  if (!global.events) {
+    global.events = {};
+  }
+  const eventName = `${scope.toUpperCase()}:connect-render`;
+  if (!global.events[eventName]) {
+    global.events[eventName] = {
+      listeners: [],
+    };
+  }
+  for (const [name, value] of keypairs) {
+    global.events[eventName][name] = value;
+  }
+};
+
+export function useHydrate(data: Record<string, Event<any>>) {
+  useMemo(() => {
+    if (typeof window !== "undefined") {
+      for (const key of Object.keys(data)) {
+        if (key.endsWith(":connect-render")) {
+          const scope = key.split(":")[0];
+          const obj = { ...data[key] };
+          delete obj.listeners;
+          pushToHydrate(
+            scope,
+            ...Object.keys(obj).map((k) => [k, obj[k]] as KeyPair<any>)
+          );
+        }
+      }
+    }
+  }, []);
+}
+
+export function connectHydrate<F extends (...args: any[]) => any>(
+  func: (
+    options: { pushToHydrate: Hydrate },
+    ...argsF: Parameters<F>
+  ) => ReturnType<F>
+) {
+  return async (...args: Parameters<F>) => {
+    const server = await func({ pushToHydrate }, ...args);
+    server.props = server.props || {};
+    const events = getGlobal().events;
+    if (events) {
+      server.props.connectRenderHydrate = events;
+    }
+    return server;
   };
 }
 

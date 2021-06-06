@@ -12,7 +12,7 @@ interface UseEventOptions<D = Record<string, any>> {
   initialData?: D;
 }
 
-type Event<D> = {
+export type Event<D> = {
   listeners: Listener[];
 } & D;
 export function useEvent<D>({ name, initialData }: UseEventOptions<D>) {
