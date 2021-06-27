@@ -9,6 +9,7 @@ type Watch = <T = any>(
 ) => [T, (value: T) => void];
 
 type Listen = <TS = any[]>(...names: string[]) => TS;
+type GetCurrent = <TS = any[]>(...names: string[]) => TS;
 type Pusher = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
 
 type KeyPair<T> = [string, T];
@@ -87,7 +88,15 @@ export function useConnectRender<T = any>(
     [event, emit]
   );
 
+  const getCurrent = useCallback<GetCurrent>(
+    (...names) => {
+      return names.map((name) => event[name]) as any;
+    },
+    [event]
+  );
+
   return {
+    getCurrent,
     listen,
     watch,
     pusher,
