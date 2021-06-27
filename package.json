@@ -1,11 +1,11 @@
 {
   "name": "use-connect-render",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "",
   "main": "lib/index.js",
   "types": "lib",
   "scripts": {
-    "build": "tsc -p ."
+    "build": "rm -rf lib && tsc -p ."
   },
   "files": [
     "/lib"
