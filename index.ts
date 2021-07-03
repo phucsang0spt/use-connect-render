@@ -1,7 +1,7 @@
 export { useGlobal } from "./global";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Event, useEvent } from "./event";
-import { getGlobal } from "./global";
+import { getGlobal, useGlobal } from "./global";
 
 type Watch = <T = any>(
   name: string,
@@ -10,6 +10,7 @@ type Watch = <T = any>(
 
 type Listen = <TS = any[]>(...names: string[]) => TS;
 type GetCurrent = <TS = any[]>(...names: string[]) => TS;
+type GetOther = <TS = any[]>(scope: string, ...names: string[]) => TS;
 type Pusher = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
 
 type KeyPair<T> = [string, T];
@@ -22,6 +23,8 @@ export function useConnectRender<T = any>(
   const eventName = useMemo(() => {
     return `${scope.toUpperCase()}:connect-render`;
   }, [scope]);
+
+  const global = useGlobal();
 
   const [event, addListener, emit] = useEvent<Record<string, T>>({
     name: eventName,
@@ -88,6 +91,17 @@ export function useConnectRender<T = any>(
     [event, emit]
   );
 
+  const getOther = useCallback<GetOther>(
+    (scope, ...names) => {
+      if (!global.events) {
+        return [];
+      }
+      const _event = global.events[`${scope.toUpperCase()}:connect-render`];
+      return _event ? (names.map((name) => _event[name]) as any) : [];
+    },
+    [event, global]
+  );
+
   const getCurrent = useCallback<GetCurrent>(
     (...names) => {
       return names.map((name) => event[name]) as any;
@@ -96,6 +110,7 @@ export function useConnectRender<T = any>(
   );
 
   return {
+    getOther,
     getCurrent,
     listen,
     watch,
