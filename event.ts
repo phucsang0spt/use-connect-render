@@ -36,7 +36,8 @@ export function useEvent<D>({ name, initialData }: UseEventOptions<D>) {
           }
         }
       }
-    }
+    },
+    [name]
   );
 
   const event = useMemo(() => {
