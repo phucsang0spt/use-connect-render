@@ -11,7 +11,7 @@ type Watch = <T = any>(
 type Listen = <TS = any[]>(...names: string[]) => TS;
 type GetCurrent = <TS = any[]>(...names: string[]) => TS;
 type GetOther = <TS = any[]>(scope: string, ...names: string[]) => TS;
-type Pusher = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
+type Push = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
 
 type KeyPair<T> = [string, T];
 type Hydrate<T = any> = (scope: string, ...keypairs: KeyPair<T>[]) => void;
@@ -31,7 +31,7 @@ export function useConnectRender<T = any>(
     initialData: defaultValue,
   });
   const refWatchList = useRef<Record<string, any>>({});
-  const refPusher = useRef<Record<string, (value: any) => void>>({});
+  const refPush = useRef<Record<string, (value: any) => void>>({});
   const [, setTick] = useState<number>();
 
   const dispatch = useCallback(
@@ -58,12 +58,12 @@ export function useConnectRender<T = any>(
         refWatchList.current[name] =
           event[name] === undefined ? defaultValue : event[name];
       }
-      if (!refPusher.current.hasOwnProperty(name)) {
-        refPusher.current[name] = (value: any) => {
+      if (!refPush.current.hasOwnProperty(name)) {
+        refPush.current[name] = (value: any) => {
           emit("dispatch", name, value);
         };
       }
-      return [refWatchList.current[name], refPusher.current[name]];
+      return [refWatchList.current[name], refPush.current[name]];
     },
     [event, emit]
   );
@@ -80,7 +80,7 @@ export function useConnectRender<T = any>(
     [event]
   );
 
-  const pusher = useCallback<Pusher>(
+  const push = useCallback<Push>(
     (name, value) => {
       if (typeof value === "function") {
         const func = value as Function;
@@ -114,7 +114,7 @@ export function useConnectRender<T = any>(
     getCurrent,
     listen,
     watch,
-    pusher,
+    push,
   };
 }
 

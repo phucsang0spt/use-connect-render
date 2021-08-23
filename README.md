@@ -4,12 +4,12 @@ import { useConnectRender } from 'use-connect-render'
 
 ```
 function CompA() {
-   const { pusher } =  useConnectRender('my-counter', { c: 0, started : false });
+   const { push } =  useConnectRender('my-counter', { c: 0, started : false });
 
    return (
         <button onClick={()=> {
-            pusher('c', prev => prev + 1);
-            pusher('started', true)
+            push('c', prev => prev + 1);
+            push('started', true)
         }}>
            Click me
         </button>
@@ -33,12 +33,12 @@ function CompB() {
 
 ```
 function CompA() {
-   const { pusher, getCurrent } =  useConnectRender('my-counter', { c: 0 });
+   const { push, getCurrent } =  useConnectRender('my-counter', { c: 0 });
 
    const count = useCallback(()=>{
        const curr = getCurrent('c')[0];
-       pusher('c', curr + 1);
-   },[pusher, getCurrent]);
+       push('c', curr + 1);
+   },[push, getCurrent]);
 
    return (
         <button onClick={count}>
