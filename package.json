@@ -1,6 +1,6 @@
 {
   "name": "use-connect-render",
-  "version": "0.0.18",
+  "version": "0.0.22",
   "description": "",
   "main": "lib/index.js",
   "types": "lib",
@@ -16,16 +16,22 @@
     "state management without redux",
     "react render",
     "connect render",
-    "react connect render"
+    "react connect render",
+    "use connect render",
+    "react hook render",
+    "redux with hook",
+    "redux with nextjs"
   ],
   "repository": "https://github.com/phucsang0spt/use-connect-render",
   "author": "Phuc Sang",
   "license": "ISC",
   "dependencies": {
+    "lodash": "^4.17.21",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.175",
     "@types/react": "^17.0.0",
     "typescript": "^4.1.3"
   }

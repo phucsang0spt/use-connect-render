@@ -1,7 +1,8 @@
 export { useGlobal } from "./global";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Event, useEvent } from "./event";
-import { getGlobal, useGlobal } from "./global";
+import { clearGlobal, getGlobal, getNextStore, useGlobal } from "./global";
+import cloneDeep from "lodash/cloneDeep";
 
 type Watch = <T = any>(
   name: string,
@@ -14,7 +15,22 @@ type GetOther = <TS = any[]>(scope: string, ...names: string[]) => TS;
 type Push = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
 
 type KeyPair<T> = [string, T];
-type Hydrate<T = any> = (scope: string, ...keypairs: KeyPair<T>[]) => void;
+
+type PushToHydrate<T = any> = (
+  storeId: string,
+  scope: string,
+  ...keypairs: KeyPair<T>[]
+) => void;
+
+type PushToClientStore<T = any> = (
+  scope: string,
+  ...keypairs: KeyPair<T>[]
+) => void;
+
+type PushToHydrateShort<T = any> = (
+  scope: string,
+  ...keypairs: KeyPair<T>[]
+) => void;
 
 export function useConnectRender<T = any>(
   scope: string,
@@ -127,8 +143,22 @@ export function useConnectRender<T = any>(
   };
 }
 
-const pushToHydrate: Hydrate = function (scope, ...keypairs) {
+const pushToClientStore: PushToClientStore = function (scope, ...keypairs) {
   const global = getGlobal<{ events: Record<string, any> }>();
+  if (!global.events) {
+    global.events = {};
+  }
+  const eventName = `${scope.toUpperCase()}:connect-render`;
+  global.events[eventName] = global.events[eventName] || {};
+  global.events[eventName].listeners = [];
+
+  for (const [name, value] of keypairs) {
+    global.events[eventName][name] = value;
+  }
+};
+
+const pushToHydrate: PushToHydrate = function (storeId, scope, ...keypairs) {
+  const global = getNextStore<{ events: Record<string, any> }>(storeId);
   if (!global.events) {
     global.events = {};
   }
@@ -150,8 +180,7 @@ export function useHydrate(data: Record<string, Event<any>>) {
         if (key.endsWith(":connect-render")) {
           const scope = key.split(":")[0];
           const obj = { ...data[key] };
-          delete obj.listeners;
-          pushToHydrate(
+          pushToClientStore(
             scope,
             ...Object.keys(obj).map((k) => [k, obj[k]] as KeyPair<any>)
           );
@@ -163,17 +192,31 @@ export function useHydrate(data: Record<string, Event<any>>) {
 
 export function connectHydrate<F extends (...args: any[]) => any>(
   func: (
-    options: { pushToHydrate: Hydrate },
+    options: { pushToHydrate: PushToHydrateShort },
     ...argsF: Parameters<F>
   ) => ReturnType<F>
 ) {
   return async (...args: Parameters<F>) => {
-    const server = await func({ pushToHydrate }, ...args);
+    const storeId = `${Math.random()}:${new Date().getTime()}`;
+    const server = await func(
+      { pushToHydrate: (...args) => pushToHydrate(storeId, ...args) },
+      ...args
+    );
     server.props = server.props || {};
-    const events = getGlobal().events;
+    const events = getNextStore(storeId).events;
     if (events) {
-      server.props.connectRenderHydrate = events;
+      server.props.connectRenderHydrate = cloneDeep(
+        Object.keys(events).reduce(
+          (evs: Record<string, any>, eventName: string) => {
+            evs[eventName] = { ...events[eventName] };
+            delete evs[eventName].listeners;
+            return evs;
+          },
+          {}
+        )
+      );
     }
+    clearGlobal(storeId);
     return server;
   };
 }
