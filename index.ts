@@ -176,14 +176,16 @@ const pushToHydrate: PushToHydrate = function (storeId, scope, ...keypairs) {
 export function useHydrate(data: Record<string, Event<any>>) {
   useMemo(() => {
     if (typeof window !== "undefined") {
-      for (const key of Object.keys(data)) {
-        if (key.endsWith(":connect-render")) {
-          const scope = key.split(":")[0];
-          const obj = { ...data[key] };
-          pushToClientStore(
-            scope,
-            ...Object.keys(obj).map((k) => [k, obj[k]] as KeyPair<any>)
-          );
+      if (data) {
+        for (const key of Object.keys(data)) {
+          if (key.endsWith(":connect-render")) {
+            const scope = key.split(":")[0];
+            const obj = { ...data[key] };
+            pushToClientStore(
+              scope,
+              ...Object.keys(obj).map((k) => [k, obj[k]] as KeyPair<any>)
+            );
+          }
         }
       }
     }
