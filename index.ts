@@ -1,7 +1,7 @@
 export { useGlobal } from "./global";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Event, useEvent } from "./event";
-import { clearGlobal, getGlobal, getNextStore, useGlobal } from "./global";
+import { clearGlobal, getGlobal, getServerStore, useGlobal } from "./global";
 import cloneDeep from "lodash/cloneDeep";
 
 type Watch = <T = any>(
@@ -16,7 +16,7 @@ type Push = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
 
 type KeyPair<T> = [string, T];
 
-type PushToHydrate<T = any> = (
+type PushToServerState<T = any> = (
   storeId: string,
   scope: string,
   ...keypairs: KeyPair<T>[]
@@ -27,7 +27,7 @@ type PushToClientStore<T = any> = (
   ...keypairs: KeyPair<T>[]
 ) => void;
 
-type PushToHydrateShort<T = any> = (
+type PushToServerStateShort<T = any> = (
   scope: string,
   ...keypairs: KeyPair<T>[]
 ) => void;
@@ -157,8 +157,12 @@ const pushToClientStore: PushToClientStore = function (scope, ...keypairs) {
   }
 };
 
-const pushToHydrate: PushToHydrate = function (storeId, scope, ...keypairs) {
-  const global = getNextStore<{ events: Record<string, any> }>(storeId);
+const pushToServerState: PushToServerState = function (
+  storeId,
+  scope,
+  ...keypairs
+) {
+  const global = getServerStore<{ events: Record<string, any> }>(storeId);
   if (!global.events) {
     global.events = {};
   }
@@ -175,6 +179,7 @@ const pushToHydrate: PushToHydrate = function (storeId, scope, ...keypairs) {
 
 export function useHydrate(data: Record<string, Event<any>>) {
   useMemo(() => {
+    // only run this on browser, but before all child components mounted
     if (typeof window !== "undefined") {
       if (data) {
         for (const key of Object.keys(data)) {
@@ -192,22 +197,22 @@ export function useHydrate(data: Record<string, Event<any>>) {
   }, []);
 }
 
-export function connectHydrate<F extends (...args: any[]) => any>(
+export function connectServerStore<F extends (...args: any[]) => any>(
   func: (
-    options: { pushToHydrate: PushToHydrateShort },
+    options: { pushToServerState: PushToServerStateShort },
     ...argsF: Parameters<F>
   ) => ReturnType<F>
 ) {
   return async (...args: Parameters<F>) => {
     const storeId = `${Math.random()}:${new Date().getTime()}`;
     const server = await func(
-      { pushToHydrate: (...args) => pushToHydrate(storeId, ...args) },
+      { pushToServerState: (...args) => pushToServerState(storeId, ...args) },
       ...args
     );
     server.props = server.props || {};
-    const events = getNextStore(storeId).events;
+    const events = getServerStore(storeId).events;
     if (events) {
-      server.props.connectRenderHydrate = cloneDeep(
+      server.props.hydrateData = cloneDeep(
         Object.keys(events).reduce(
           (evs: Record<string, any>, eventName: string) => {
             evs[eventName] = { ...events[eventName] };

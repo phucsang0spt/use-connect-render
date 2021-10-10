@@ -43,7 +43,7 @@ export function getGlobal<T extends Record<string, any>>() {
   return __global as T;
 }
 
-export function getNextStore<O = any>(storeId: string) {
+export function getServerStore<O = any>(storeId: string) {
   nextjsStore[storeId] = nextjsStore[storeId] || {};
   return nextjsStore as O;
 }
