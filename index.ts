@@ -215,7 +215,8 @@ export function connectServerStore<F extends (...args: any[]) => any>(
       server.props.hydrateData = cloneDeep(
         Object.keys(events).reduce(
           (evs: Record<string, any>, eventName: string) => {
-            evs[eventName] = { ...events[eventName] };
+            // REMOVE properties with undefined value by JSON.stringify
+            evs[eventName] = JSON.parse(JSON.stringify(events[eventName]));
             delete evs[eventName].listeners;
             return evs;
           },
