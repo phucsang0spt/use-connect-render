@@ -49,7 +49,7 @@ export function useConnectRender<T = any>(
   const refWatchList = useRef<Record<string, any>>({});
   const refPush = useRef<Record<string, (value: any) => void>>({});
   const refSubscriptions = useRef<any[]>([]);
-  const [, setTick] = useState<number>();
+  const [, setTick] = useState<string>();
 
   const dispatch = useCallback(
     (name: string, value: any) => {
@@ -57,7 +57,7 @@ export function useConnectRender<T = any>(
       if (refWatchList.current.hasOwnProperty(name)) {
         if (refWatchList.current[name] !== value) {
           refWatchList.current[name] = value;
-          setTick(new Date().getTime());
+          setTick(`${Math.random()}-${new Date().getTime()}`);
         }
       }
     },
