@@ -48,7 +48,7 @@ export function useConnectRender<T = any>(
   });
   const refWatchList = useRef<Record<string, any>>({});
   const refPush = useRef<Record<string, (value: any) => void>>({});
-  const refSubscriptions = useRef<any[]>([]);
+  const refSubscription = useRef<any>();
   const [, setTick] = useState<string>();
 
   const dispatch = useCallback(
@@ -66,14 +66,13 @@ export function useConnectRender<T = any>(
 
   useMemo(() => {
     const unsub = addListener("dispatch", dispatch);
-    refSubscriptions.current.push(unsub);
+    refSubscription.current = unsub;
   }, [addListener, dispatch]);
 
   useEffect(() => {
+    const unsub = refSubscription.current;
     return () => {
-      for (const unsub of refSubscriptions.current) {
-        unsub();
-      }
+      unsub?.();
     };
   }, [addListener, dispatch]);
 
