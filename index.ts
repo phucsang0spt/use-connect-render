@@ -97,7 +97,7 @@ export function useConnectRender<T = any>(
       const values: any[] = [];
       for (const el of els) {
         const [name, defaultValue] = Array.isArray(el) ? el : [el];
-        if (!refWatchList.current.hasOwnProperty(name)) {
+        if (refWatchList.current[name] === undefined) {
           refWatchList.current[name] = event[name];
         }
         const value = refWatchList.current[name];
