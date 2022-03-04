@@ -9,7 +9,7 @@ type Watch = <T = any>(
   defaultValue?: T
 ) => [T, (value: T) => void];
 
-type Listen = <TS = any[]>(...names: string[]) => TS;
+type Listen = <TS = any[]>(...names: (string | [string, any])[]) => TS;
 type GetCurrent = <TS = any[]>(...names: string[]) => TS;
 type GetOther = <TS = any[]>(scope: string, ...names: string[]) => TS;
 type Push = <T = any>(name: string, value: T | ((prev: T) => T)) => any;
@@ -93,13 +93,17 @@ export function useConnectRender<T = any>(
   );
 
   const listen = useCallback<Listen>(
-    (...names) => {
-      for (const name of names) {
+    (...els) => {
+      const values: any[] = [];
+      for (const el of els) {
+        const [name, defaultValue] = Array.isArray(el) ? el : [el];
         if (!refWatchList.current.hasOwnProperty(name)) {
           refWatchList.current[name] = event[name];
         }
+        const value = refWatchList.current[name];
+        values.push(value === undefined ? defaultValue : value);
       }
-      return names.map((name) => refWatchList.current[name]) as any;
+      return values as any;
     },
     [event]
   );
