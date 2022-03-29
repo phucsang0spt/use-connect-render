@@ -147,7 +147,7 @@ export function useConnectRender<T = any>(
 }
 
 const pushToClientStore: PushToClientStore = function (scope, ...keypairs) {
-  const global = getGlobal<{ events: Record<string, any> }>();
+  const global = getGlobal();
   if (!global.events) {
     global.events = {};
   }

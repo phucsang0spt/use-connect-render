@@ -1,7 +1,23 @@
 import { useMemo } from "react";
 
 //@ts-ignore
-const nextjsStore: Record<string, any> = global;
+const globalStore: Record<string, any> = (function () {
+  let __global;
+  if (typeof window !== "undefined") {
+    // browser
+    __global = window as Record<string, any>;
+    //@ts-ignore
+  } else if (typeof global !== "undefined") {
+    //@ts-ignore
+    __global = global;
+  } else {
+    __global = {};
+  }
+  return __global as Record<string, any>;
+})();
+
+//@ts-ignore
+const nextjsStore: Record<string, any> = globalStore;
 
 export function useGlobal<T extends Record<string, any>>(
   initialValue?: T,
@@ -28,19 +44,8 @@ export function useGlobal<T extends Record<string, any>>(
   return gb;
 }
 
-export function getGlobal<T extends Record<string, any>>() {
-  let __global;
-  if (typeof window !== "undefined") {
-    // browser
-    __global = window as Record<string, any>;
-    //@ts-ignore
-  } else if (typeof global !== "undefined") {
-    //@ts-ignore
-    __global = global;
-  } else {
-    __global = {};
-  }
-  return __global as T;
+export function getGlobal() {
+  return globalStore;
 }
 
 export function getServerStore<O = any>(storeId: string) {
