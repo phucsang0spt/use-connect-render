@@ -1,6 +1,6 @@
 {
   "name": "use-connect-render",
-  "version": "0.0.33",
+  "version": "0.0.34",
   "description": "",
   "main": "lib/index.js",
   "types": "lib",
@@ -26,8 +26,7 @@
   "author": "Phuc Sang",
   "license": "ISC",
   "dependencies": {
-    "lodash": "^4.17.21",
-    "react": "^18.2.0"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.175",
